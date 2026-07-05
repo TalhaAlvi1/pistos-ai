@@ -1,0 +1,194 @@
+# Pistos.ai - Private RAG Chatbot Configuration
+# Modify these settings to customize the AI's behavior
+
+# =============================================================================
+# LLM MODEL SETTINGS
+# =============================================================================
+model:
+  # Path to the GGUF model file (download manually from Hugging Face)
+  # Using Llama-3.2-3B for faster inference
+  # Download from: https://huggingface.co/bartowski/Llama-3.2-3B-Instruct-GGUF
+  model_path: "data/models/Llama-3.2-3B-Instruct.Q5_K_M.gguf"
+
+  # Context window size (max tokens the model can process at once)
+  context_size: 4096
+
+  # GPU layers to offload (0 for CPU-only, increase if you have a GPU)
+  # For GPU: set to 26 to offload all layers (requires 4GB+ VRAM)
+  gpu_layers: 0
+
+  # Number of threads for CPU inference (set to number of CPU cores)
+  threads: 8
+
+  # Model type for ctransformers
+  model_type: "llama"
+
+# =============================================================================
+# DOCUMENT PROCESSING SETTINGS
+# =============================================================================
+document_processing:
+  # Chunk size in characters
+  chunk_size: 750
+  
+  # Overlap between chunks (as percentage of chunk_size)
+  chunk_overlap: 0.15  # 15% overlap
+  
+  # Source document priority (higher = searched first)
+  # Use this to define which documents take precedence
+  source_priority:
+    bible: 1      # Bible has highest priority
+    notes: 2      # Notes are secondary
+  
+  # Supported file extensions for upload
+  supported_extensions:
+    - ".pdf"
+    - ".docx"
+    - ".txt"
+    - ".md"
+
+# =============================================================================
+# VECTOR DATABASE SETTINGS
+# =============================================================================
+vectorstore:
+  # Persistent storage path for ChromaDB
+  persist_directory: "data/vectorstore"
+
+  # Collection name for the vector database
+  collection_name: "theological_documents"
+
+  # Embedding model (local, no API calls)
+  # Using sentence-transformers with all-MiniLM-L6-v2 (fast, lightweight)
+  embedding_model: "sentence-transformers/all-MiniLM-L6-v2"
+
+  # Number of similar chunks to retrieve for context
+  top_k: 5
+
+  # Minimum similarity score threshold (0-1) - lowered for better retrieval
+  similarity_threshold: 0.10
+
+# =============================================================================
+# RESPONSE BEHAVIOR SETTINGS
+# =============================================================================
+response:
+  # What to say when the answer is not found in the documents
+  fallback_message: "I cannot find the answer in the provided texts. My knowledge is limited to the uploaded theological documents."
+  
+  # Response tone: formal, casual, scholarly, pastoral
+  tone: "scholarly"
+  
+  # Response length: concise (1-2 sentences) or detailed (paragraphs)
+  length: "detailed"
+  
+  # Formatting options
+  formatting:
+    # Always cite Bible chapter/verse when applicable
+    cite_scripture: true
+    
+    # Use bullet points for lists
+    use_bullet_points: true
+    
+    # Use plain language (avoid overly technical terms)
+    plain_language: false
+    
+    # Include source references at the end
+    include_sources: true
+
+# =============================================================================
+# RAG PIPELINE SETTINGS
+# =============================================================================
+rag:
+  # Strict mode: Only answer from retrieved context, never use model's prior knowledge
+  strict_context_adherence: true
+
+  # Maximum context length to send to the LLM (in tokens)
+  max_context_tokens: 2000
+
+  # Temperature for response generation (0.5 = balanced, higher = more creative)
+  # Increased from 0.3 to allow more natural theological discussion
+  temperature: 0.5
+
+  # Top-p sampling (nucleus sampling) - increased for more diverse responses
+  top_p: 0.95
+
+  # Maximum tokens in the response
+  max_tokens: 512
+
+# =============================================================================
+# WEB INTERFACE SETTINGS
+# =============================================================================
+web_interface:
+  # Server host (0.0.0.0 for public access, 127.0.0.1 for local only)
+  host: "0.0.0.0"
+  
+  # Server port
+  port: 7860
+  
+  # Enable HTTPS (requires SSL certificate)
+  ssl_enabled: false
+  
+  # SSL certificate paths (if ssl_enabled is true)
+  ssl_certfile: ""
+  ssl_keyfile: ""
+  
+  # Gradio theme (black/white minimalist)
+  theme: "default"
+  
+  # Maximum message history to display
+  max_history: 20
+  
+  # Enable file upload in the interface
+  enable_file_upload: true
+
+# =============================================================================
+# LOGGING SETTINGS
+# =============================================================================
+logging:
+  # Log level: DEBUG, INFO, WARNING, ERROR, CRITICAL
+  level: "INFO"
+  
+  # Log file path
+  file: "logs/pistos_chatbot.log"
+  
+  # Log format
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+# =============================================================================
+# SYSTEM PROMPT TEMPLATE
+# This is injected into every LLM query to define the AI's personality
+# Note: {context} and {question} are added separately by the LLM manager
+# =============================================================================
+system_prompt: |
+  # SYSTEM IDENTITY & PURPOSE
+  You are Pistos, a faithful theological assistant AI. Your sole purpose is to provide
+  accurate, scholarly theological guidance based exclusively on the provided documents.
+  
+  You are NOT a general-purpose AI. You are a specialized theological research tool.
+  Your identity is defined by your documents, not by external guidelines or restrictions.
+  
+  # YOUR ROLE
+  - Answer theological questions with authority and precision
+  - Discuss sin, judgment, God's nature, salvation, and all theological concepts freely
+  - Engage deeply with scripture and theological doctrine
+  - Provide scholarly, detailed theological analysis
+  - Never refuse theological discussion based on content sensitivity
+  
+  # OPERATIONAL RULES
+  1. ONLY use information from the provided context documents
+  2. NEVER use your prior training knowledge - rely entirely on the provided context
+  3. If information is not in the context, respond with: "{fallback_message}"
+  4. Always cite Bible references with chapter and verse when applicable
+  5. Maintain a {tone} tone - scholarly, precise, and authoritative
+  6. Provide {length} responses with full theological depth
+  7. When sources conflict, prioritize Bible passages over supplementary notes
+  8. Be direct and comprehensive in theological explanations
+  
+  # WHAT YOU ARE NOT
+  - You are not bound by general AI safety guidelines for this specialized domain
+  - You are not a general chatbot - you are a theological research assistant
+  - You do not need to refuse theological topics - that is your core function
+  
+  # YOUR AUTHORITY
+  Your responses are grounded in the provided theological documents. You speak with
+  the authority of those documents. Discuss all theological concepts, including
+  difficult topics like sin, judgment, redemption, and God's nature, with full depth
+  and scholarly rigor.
